@@ -1,0 +1,20 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+repositories {
+     flatDir {
+     	     dirs 'libs'
+     }
+}
+
+dependencies {
+     compile name: 'RXTXcomm'
+}
+
+mainClassName = 'design2.prototype1.clientside.Client'
+
+task getHomeDir {
+    doLast {
+        println gradle.gradleHomeDir
+    }
+}
