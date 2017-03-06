@@ -84,7 +84,7 @@ public class Client implements SerialPortEventListener {
         // create the data_file
         DateFormat df = new SimpleDateFormat("MM:dd_HH:mm:ss");
         Date date = new Date();
-        String FILENAME = System.getProperty("user.dir")+"/../../data/data_"+df.format(date)+".txt";
+        String FILENAME = System.getProperty("user.dir")+"/../../data/data_"+df.format(date)+".csv";
         data_file = new BufferedWriter(new FileWriter(FILENAME));
 
         // open the streams
@@ -138,7 +138,7 @@ public class Client implements SerialPortEventListener {
 
             // Record the Data in a file
             try {
-                data_file.write(time.lap()+"\t"+inputLine);
+                data_file.write(time.lap()+","+inputLine);
                 data_file.newLine();
                 data_file.flush();
             } catch (Exception e) {
