@@ -1,8 +1,7 @@
 clc;
 clear;
 
-%data = importdata('../../data/testdata.txt');
-data = csvread('../../data/data_03:04_15:10:14.csv');
+data = csvread('/Users/blakeolsen/Documents/coding/design2/src/Client/../../data/data_03:06_16:10:38.csv');
 time = data(:,1);
 force = data(:,2);
 

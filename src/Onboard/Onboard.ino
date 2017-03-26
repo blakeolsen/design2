@@ -5,22 +5,27 @@
    force applied to the user of the crutch
 
    The Circuit:
-    - force sensor - digital pin 1
+    - force sensor - digital pin 3
     - led light - digital pin 4
 */
 
-//import processing.serial.*;
+#include <HX711.h>
 
 // Sensor Pins
-const int SENSOR_PIN = 1;
+const int CLOCK_PIN = 2;
+const int SENSOR_PIN = 3;
 const int LED_PIN = 4;
 
 // Constants
-const int MAX_WEIGHT = 0;
+const int MAX_WEIGHT = 500;
+const float calibration_factor = -7050;
 
 // Tools
-boolean LED_STATE;
+boolean TOO_HEAVY;
 double INITIAL_FORCE;
+int CYCLE_COUNT;
+HX711 scale(SENSOR_PIN, CLOCK_PIN);
+
 
 /**
  * setup
@@ -28,33 +33,53 @@ double INITIAL_FORCE;
  *   - sensor pin
  */
 void setup() {
-  // Zero Out the LED
-  LED_STATE = false;
-  digitalWrite(LED_PIN, LOW);
-
   // Find the Steady-state force applied
-  INITIAL_FORCE = (double) analogRead(SENSOR_PIN);
+  scale.set_scale();
+  scale.tare();
+
+  TOO_HEAVY = false;
 
   Serial.begin(9600); // bits per second, ranges from 300 to 115200
   pinMode(LED_PIN, OUTPUT);
-  Serial.print("Initital Force: ");
-  Serial.print(INITIAL_FORCE);
 }
 
 void loop() {
+  delay(10000);
+  if (scale.is_ready()) {
+    scale.tare();
+    Serial.print("Offset: ");
+    Serial.print(scale.get_offset());
+    Serial.print("\n");
+    
+    Serial.print("Initial Force: ");
+    Serial.print(scale.get_units());
+    Serial.print("\n");
+    
+    Serial.print("Begin Sensing");
+    Serial.print("\n");
+    begin_reading();
+  }
+}
+
+void begin_reading() {
+  while(1) {
+    double force = scale.get_units();
+    Serial.println(force);
+    
+    if ((force > MAX_WEIGHT) && !TOO_HEAVY) {
+      Serial.println("Exceeded Suggested Weight");
+      TOO_HEAVY = true;
+    } else if ((force < MAX_WEIGHT) && TOO_HEAVY) {
+      Serial.println("Within Correct Weight Range");
+      TOO_HEAVY = false;
+    }
   
-  
-  delay(100);
-  double force = getForce();
-  Serial.println(force);
-  if ((force > MAX_WEIGHT) && !LED_STATE) {
-    Serial.println("Exceeded Suggested Weight");
-    LED_STATE = true;
-    digitalWrite(LED_PIN, HIGH);
-  } else if ((force < MAX_WEIGHT) && LED_STATE) {
-    Serial.println("Within Correct Weight Range");
-    LED_STATE = false;
-    digitalWrite(LED_PIN, LOW);
+    CYCLE_COUNT++;
+    if (CYCLE_COUNT % 100 == 0) {
+      Serial.println("Heartbeat");
+    }
+    
+    delay(200);
   }
 }
 
@@ -63,6 +88,6 @@ void loop() {
  * def: determines the amount of force applied by the user
  */
 double getForce() {
-  return (double) analogRead(SENSOR_PIN) - INITIAL_FORCE;
+  return 0.0;
 }
 
