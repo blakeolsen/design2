@@ -18,7 +18,7 @@ import java.util.Enumeration;
  * - gnu.io - included in the RXTXcomm.jar file
  */
 public class Client implements SerialPortEventListener {
-    private static final String PORT_NAME = "/dev/tty.HC-05-DevB";
+    private static final String PORT_NAME = "/dev/tty.usbmodem1411";
     SerialPort serialPort;
     /**
      * A BufferedReader which will be fed by a InputStreamReader
