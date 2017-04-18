@@ -1,32 +1,50 @@
+// LIBRARIES
 import processing.serial.*;
-Serial ARDUINO;
-String ledStatus="LED: OFF";
 
-int in;
+// CONSTANTS
+private static int FPS = 30;
+private static int BACKGROUND = 255;
+
+// GLOBALS
+Serial ARDUINO_ONE;
+Serial ARDUINO_TWO;
+String PORT_ONE = "COM5";
+String PORT_TWO = "COM6";
+PFont font;
 
 void setup(){
-  size(200,200);
-  printArray(Serial.list());
-  String BLUETOOTH_PORT = Serial.list()[5];
-  println(BLUETOOTH_PORT);
-  ARDUINO = new Serial(this, BLUETOOTH_PORT, 38400);
-  print("ARDUINO available");
-   print(ARDUINO.available());
-  in = 0;
-
-  ARDUINO.bufferUntil('\n'); // Defines up to which character the data from the serial port will be read. The character '\n' or 'New Line'
+  // PREPARE THE DISPLAY
+  size(500,500);
+  smooth();
+  frameRate(FPS);
+  
+  // PREPARE THE BLUETOOTH
+  /*
+  ARDUINO_ONE = new Serial(this, PORT_ONE, 38400);
+  ARDUINO_ONE.bufferUntil('\n');
+  ARDUINO_TWO = new Serial(this, PORT_TWO, 38400);
+  ARDUINO_TWO.bufferUntil('\n');
+  */
 }
 
-void serialEvent (Serial ARDUINO){ // Checks for available data in the Serial Port
-  in = ARDUINO.read(); 
-  println(in);
+void serialEvent(Serial CON) {
+  if (CON == ARDUINO_ONE) {
+    
+  } else if (CON == ARDUINO_TWO) {
+    
+  }
 }
 
 void draw(){
-  background(0);
-  text("READ: "+in,10,10);
-   while (ARDUINO.available() > 0) {
-    int inByte = ARDUINO.read();
-    println(inByte);
-  }
+  // CLEAR BACKGROUND
+  background(BACKGROUND);
+  
+  // Draw Title
+  font = createFont ("Serif",30);
+  textFont (font);
+  fill(0);
+  textAlign(TOP,LEFT);
+  text("iCrutch",60,60);
+  
+  // Draw 
 }
