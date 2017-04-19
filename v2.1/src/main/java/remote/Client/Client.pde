@@ -22,7 +22,7 @@ private PFont SCALE_FONT;
 // GLOBALS
 Serial ARDUINO_ONE;
 Serial ARDUINO_TWO;
-String PORT_ONE = "COM4";
+String PORT_ONE = "/dev/tty.usbmodem1411";
 String PORT_TWO = "COM6";
 float FORCE_ONE;
 float FORCE_TWO;
@@ -32,7 +32,7 @@ float MAX_WEIGHT;
 
 void setup(){
   // PREPARE THE DISPLAY
-  size(1000,1000);
+  size(500,500);
   smooth();
   frameRate(FPS);
   
