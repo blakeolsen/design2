@@ -46,8 +46,13 @@ void setup() {
 
 void loop() {
   float other = readFloat();
+  Serial.print("SLAVE: ");
+  Serial.println(other);
   float self = SCALE.get_value(NUMBER_READINGS);
+  Serial.print("MASTER: ");
+  Serial.println(self);
   float estimate = getEstimate(other, self);
+  Serial.print("ESTIMATE: ");
   Serial.println(estimate);
   sendBoolean(estimate > MAX_LOAD);
   feedback(estimate > MAX_LOAD);
@@ -73,6 +78,7 @@ float readFloat() {
   while (true) {
     if (!(CONN.available() > 0)) { // wait for more data to come in
       count = 0;
+      msg = "";
       delay(10);
       continue;
     }
@@ -80,7 +86,6 @@ float readFloat() {
     char recieved = CONN.read();
     if (count >= 4) { // end of the msg
       if (recieved == DELIMITER) {
-        Serial.println(msg.toFloat());
         return msg.toFloat();
       } else { // failed to get end delimiter
         msg = "";
@@ -112,13 +117,15 @@ void feedback(boolean on) {
 /* connects to the slave module
  */
 void connect() {
+  Serial.println("ATTEMPING TO CONNECT");
   while (true) {
     CONN.write(1);
-    if (CONN.available() > 0 && CONN.read()) {
+    if (CONN.available() > 0) {
       CONN.flush();
+      Serial.println("CONNECTED");
       return;
     }
-    delay(10);
+    delay(100);
   }
 }
 
