@@ -3,9 +3,9 @@ import processing.serial.*;
 
 // CONSTANTS
 private static int BLUETOOTH_RATE = 9600;
-private static int FPS = 10;
+private static int FPS = 20;
 private static int BACKGROUND = 255;
-private static float GRAPH_SCALAR = 1.0;
+private static float GRAPH_SCALAR = 2.5;
 private static int BAR_HEIGHT = 400;
 private static int LABEL_HEIGHT = 10;
 private static int NUMBER_HEIGHT = 30;
@@ -59,7 +59,6 @@ void setup(){
  */
 void draw(){
   float barWidth = width/6;
-  float x;
   
   // CLEAR BACKGROUND
   background(BACKGROUND);
@@ -101,14 +100,13 @@ void draw(){
   BAR_HEIGHT-FORCE_ONE*GRAPH_SCALAR-NUMBER_HEIGHT);
   
   // DRAW BAR GRAPH #1
-  x = barWidth/2;
-  rect(x, BAR_HEIGHT, barWidth, -FORCE_ONE*GRAPH_SCALAR);
+  rect(HORIZONTAL_LOC, BAR_HEIGHT, barWidth, -FORCE_ONE*GRAPH_SCALAR);
   
   // DRAW SCALE + LINES
   textFont (SCALE_FONT);
   fill(0);
   textAlign(BOTTOM,LEFT);
-  for (int i = 0; i < 300; i+=5) {
+  for (int i = 0; i < 100; i+=5) {
     float y = BAR_HEIGHT-i*GRAPH_SCALAR;
     if (i%10 == 0) {
       line(10,y,20,y);

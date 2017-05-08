@@ -1,0 +1,8 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+dependencies {
+    compile files('src//bluecove-2.1.0.jar')
+}
+
+mainClassName = "client.AndroidApp"

@@ -4,7 +4,7 @@
 #include <HX711.h>
 
 // CONSTANTS
-#define ARDUINO_RATE 38400
+#define ARDUINO_RATE 9600
 #define BLUETOOTH_RATE 38400
 #define FEEDBACK_INTENSITY 145
 #define CALIBRATION_FACTOR 285
@@ -38,10 +38,13 @@ void setup() {
   digitalWrite(FEEDBACK_PIN, LOW);
 
   Serial.println("TESTING");
-  Serial.begin(38400); // Default communication rate of the Bluetooth module
+  Serial.begin(ARDUINO_RATE); // Default communication rate of the Bluetooth module
 }
 void loop() {
   double force = SCALE.get_units(FORCE_READINGS);
+  if (force > 0) {
+    analogWrite(FEEDBACK_PIN, FEEDBACK_INTENSITY);
+  }
   Serial.println(force);
   BLUETOOTH.println(force);
 

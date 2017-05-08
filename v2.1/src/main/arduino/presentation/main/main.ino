@@ -10,14 +10,14 @@
 #define FORCE_READINGS 5
 #define VIBRATE_ON 'I'
 #define VIBRATE_OFF 'O'
-#define MAX_LOAD 20
+#define MAX_LOAD 30
 #define MIN_FORCE 5
 #define PRINT_FREQUENCY 10
 
 // PINS
 #define CLOCK_PIN 2
 #define SENSOR_PIN 3
-#define FEEDBACK_PIN 4
+#define FEEDBACK_PIN 8
 
 // GLOBALS
 boolean VIBRATING;
@@ -38,7 +38,6 @@ void setup() {
   FORCE = 0;
   
   Serial.begin(SERIAL_RATE); // Default communication rate of the Bluetooth module
-  Serial.println("Begin Reading");
 }
 
 void loop() {
@@ -47,7 +46,8 @@ void loop() {
     FORCE = 0;
   }
   Serial.println(FORCE);
-
+  analogWrite(FEEDBACK_PIN, FEEDBACK_INTENSITY);
+/*
   if (FORCE > MAX_LOAD && !VIBRATING) {
     analogWrite(FEEDBACK_PIN, FEEDBACK_INTENSITY);
     VIBRATING = true;
@@ -55,7 +55,7 @@ void loop() {
     digitalWrite(FEEDBACK_PIN, LOW);
     VIBRATING = false;
   }
-
+  */
 }
 
 
