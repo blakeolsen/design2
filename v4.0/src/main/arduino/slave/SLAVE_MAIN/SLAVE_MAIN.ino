@@ -16,9 +16,17 @@
 #define BLUETOOTH_TX 11
 #define SERIAL_RATE 9600
 #define BLUETOOTH_RATE 38400
+#define DELIMITER '\n'
 boolean VIBRATING;
 SoftwareSerial CONN(BLUETOOTH_RX, BLUETOOTH_TX);
 HX711 SCALE(SENSOR_PIN, CLOCK_PIN);
+
+/* union to convert bytes to float
+ */
+typedef union {
+  float number;
+ uint8_t bytes[4];
+} FLOATUNION_t;
 
 void setup() {
   // INITIATE VALUES
@@ -44,9 +52,20 @@ void loop() {
   Serial.println("READING");
   float self = SCALE.get_value(NUMBER_READINGS);
   Serial.println(self);
-  CONN.println(self);
+  sendFloat(self);
   if (CONN.available() > 0) {
     feedback(CONN.read());
+  }
+}
+
+/* sends a float accross the wire
+ */
+void sendFloat(float value) {
+  FLOATUNION_t myFloat;
+  myFloat.number = value;
+  CONN.write(DELIMITER);
+  for (int i=0; i<4; i++) {
+    CONN.write(myFloat.bytes[i]);
   }
 }
 
@@ -80,4 +99,5 @@ void connect() {
     delay(10);
   }
 }
+
 

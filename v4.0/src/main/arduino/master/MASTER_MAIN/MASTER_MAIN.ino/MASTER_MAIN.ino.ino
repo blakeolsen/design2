@@ -24,6 +24,13 @@ boolean VIBRATING;
 SoftwareSerial CONN(BLUETOOTH_RX, BLUETOOTH_TX);
 HX711 SCALE(SENSOR_PIN, CLOCK_PIN);
 
+/* union to convert bytes to float
+ */
+typedef union {
+  float number;
+ uint8_t bytes[4];
+} FLOATUNION_t;
+
 void setup() {
   // INITIATE VALUES
   VIBRATING = false;
@@ -73,29 +80,21 @@ void sendBoolean(boolean b) {
 /* read the bluetooth buffer until a 'float' can be read
  */
 float readFloat() {
-  String msg = "";
+  FLOATUNION_t myFloat;
   int count = 0;
-  while (true) {
-    if (!(CONN.available() > 0)) { // wait for more data to come in
-      count = 0;
-      msg = "";
-      delay(10);
+  while (!(CONN.available() > 0 && CONN.read() == DELIMITER)) { // wait for delimiter
+    delay(10);
+  }
+
+  while (count < 4) {
+    if (CONN.available() > 0) {
+      myFloat.bytes[count] = CONN.read();
+      count++;
       continue;
     }
-
-    char recieved = CONN.read();
-    if (count >= 4) { // end of the msg
-      if (recieved == DELIMITER) {
-        return msg.toFloat();
-      } else { // failed to get end delimiter
-        msg = "";
-        count = 0;
-      }
-    } else {
-      msg += recieved;
-      count++;
-    }
+    delay(10);
   }
+  return myFloat.number;
 }
 
 /* toggles the feedback on or off
@@ -128,4 +127,5 @@ void connect() {
     delay(100);
   }
 }
+
 
