@@ -3,9 +3,12 @@
 #include <HX711.h>
 
 // VARIABLES
-#define USER_WEIGHT 150
-#define MAX_LOAD 50
-#define NUMBER_READINGS 5
+#define USER_WEIGHT 170
+#define MAX_LOAD 70
+#define MIN_THRESHOLD 10
+#define CYCLES_UNTIL_NOTIFY 4
+#define TRACKING 3
+#define NUMBER_READINGS 3
 #define FEEDBACK_INTENSITY 145
 #define CALIBRATION_FACTOR 4793
 #define OFFSET 43137
@@ -16,13 +19,18 @@
 #define FEEDBACK_PIN 8
 #define BLUETOOTH_RX 10
 #define BLUETOOTH_TX 11
-#define SERIAL_RATE 9600
+#define SERIAL_RATE 38400
 #define BLUETOOTH_RATE 38400
 #define DATA_SIZE 4;
 #define DELIMITER '\n'
+boolean SHOULD_VIBRATE;
 boolean VIBRATING;
 SoftwareSerial CONN(BLUETOOTH_RX, BLUETOOTH_TX);
 HX711 SCALE(SENSOR_PIN, CLOCK_PIN);
+int overWeightCycles;
+int vibratedCycles;
+float previous;
+boolean down;
 
 /* union to convert bytes to float
  */
@@ -34,6 +42,11 @@ typedef union {
 void setup() {
   // INITIATE VALUES
   VIBRATING = false;
+  SHOULD_VIBRATE = false;
+  overWeightCycles = 0;
+  vibratedCycles = 0;
+  previous = 0;
+  down = true;
   
   // SET FEEDBACK
   pinMode(FEEDBACK_PIN, OUTPUT);
@@ -48,21 +61,58 @@ void setup() {
 
   // BEGIN BLUETOOTH OUTPUT
   CONN.begin(BLUETOOTH_RATE);
-  connect();
+  connectSlave();
 }
 
 void loop() {
   float other = readFloat();
-  Serial.print("SLAVE: ");
-  Serial.println(other);
-  float self = SCALE.get_value(NUMBER_READINGS);
-  Serial.print("MASTER: ");
-  Serial.println(self);
+  float self = SCALE.get_units(NUMBER_READINGS);
   float estimate = getEstimate(other, self);
-  Serial.print("ESTIMATE: ");
-  Serial.println(estimate);
-  sendBoolean(estimate > MAX_LOAD);
-  feedback(estimate > MAX_LOAD);
+  sendFloat(other, 'o');
+  sendFloat(self, 'm');
+  sendFloat(estimate, 'e');
+  checkPattern(self, other, estimate);
+  sendBoolean(SHOULD_VIBRATE);
+  feedback(SHOULD_VIBRATE);
+}
+
+/* diagnoses whether to notify the user they are walking incorrectly
+ */
+void checkPattern(float slave, float master, float estimate) {
+  if (estimate > previous && slave > MIN_THRESHOLD && master > MIN_THRESHOLD) { // user's maximum force was previous
+    Serial.println("HERE");
+    Serial.println(previous);
+    if (previous > MAX_LOAD) { // overstressed foot
+      Serial.println("OVERSTRESSED");
+      overWeightCycles++;
+      if (overWeightCycles >= CYCLES_UNTIL_NOTIFY) {
+        SHOULD_VIBRATE = true;
+        vibratedCycles = 0;
+      }
+    } else {
+      if (SHOULD_VIBRATE) {
+        Serial.println("UNDERSTRESSED");
+        vibratedCycles++;
+        overWeightCycles = 0;
+        if (vibratedCycles >= CYCLES_UNTIL_NOTIFY) {
+          SHOULD_VIBRATE = false;
+        }
+      }
+    }
+  }
+  previous = estimate;
+}
+
+/* sends a float accross the wire
+ */
+void sendFloat(float value, byte identifier) {
+  FLOATUNION_t myFloat;
+  myFloat.number = value;
+  Serial.write(DELIMITER);
+  Serial.write(identifier);
+  for (int i=0; i<4; i++) {
+    Serial.write(myFloat.bytes[i]);
+  }
 }
 
 /* estimates the load on the injured limb of the individual
@@ -92,7 +142,6 @@ float readFloat() {
       count++;
       continue;
     }
-    delay(10);
   }
   return myFloat.number;
 }
@@ -104,24 +153,21 @@ float readFloat() {
 void feedback(boolean on) {
   if (on && !VIBRATING) {
     analogWrite(FEEDBACK_PIN, FEEDBACK_INTENSITY);
-    Serial.println("ON");
     VIBRATING = true;
   } else if (!on && VIBRATING) {
     digitalWrite(FEEDBACK_PIN, LOW);
-    Serial.println("OFF");
     VIBRATING = false;
   }
 }
 
 /* connects to the slave module
  */
-void connect() {
-  Serial.println("ATTEMPING TO CONNECT");
+void connectSlave() {
+  CONN.listen();
   while (true) {
     CONN.write(1);
     if (CONN.available() > 0) {
       CONN.flush();
-      Serial.println("CONNECTED");
       return;
     }
     delay(100);
