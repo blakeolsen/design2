@@ -41,7 +41,9 @@ void setup() {
 }
 
 void loop() {
+  Serial.println("READING");
   float self = SCALE.get_value(NUMBER_READINGS);
+  Serial.println(self);
   CONN.println(self);
   if (CONN.available() > 0) {
     feedback(CONN.read());
@@ -67,10 +69,12 @@ void feedback(boolean on) {
 /* connects to the master module
  */
 void connect() {
+  Serial.println("ATTEMPTING TO CONNECT");
   while (true) {
     if (CONN.available() > 0 && CONN.read()) {
       CONN.write(1);
       CONN.flush();
+      Serial.println("CONNECTED");
       return;
     }
     delay(10);
